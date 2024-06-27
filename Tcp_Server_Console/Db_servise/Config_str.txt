@@ -1,0 +1,1 @@
+﻿Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\User\source\repos\Chat_TcpClient\Tcp_Server_Console\TcpChat.mdf;Integrated Security=True
