@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -26,9 +27,12 @@ namespace Tcp_Chat_Client
     {
         public TcpClient tcpClient;
         public dll_tcp_chat.User_reg_dll user = new dll_tcp_chat.User_reg_dll();
+        public List<dll_tcp_chat.User_dll> users = new List<dll_tcp_chat.User_dll>();
+       // public ObservableCollection<dll_tcp_chat.User_dll> users_dll = new ObservableCollection<dll_tcp_chat.User_dll>();
         public MainWindow()
         {
             InitializeComponent();
+           
             AuthorUser();
             
         }
@@ -77,24 +81,23 @@ namespace Tcp_Chat_Client
                         MessageBox.Show("Вы успешно зарегистрированы!");
                         RegistrationGrid.Visibility = Visibility.Hidden;
                         MainGrid.Visibility = Visibility.Visible;
+                        await GetAllUsers();
                         tcpClient.Close();
-                        //Запрос на получение всех контактов
                     }
                     else
                     {
                         MessageBox.Show("Логин занят!");
                     }
                 }
-
             }
             catch
             {
                 MessageBox.Show("Нет связи с сервером!");
                 tcpClient.Close();
             }
-
         }
-        private void AuthorUser()
+
+        private async void AuthorUser()
         {
             string path = Directory.GetCurrentDirectory();
             string[] dirs = Directory.GetFiles(path, "*.json");
@@ -107,8 +110,47 @@ namespace Tcp_Chat_Client
             {
                 AuthorPanel.Visibility = Visibility.Visible;
                 AuthorUsers.ItemsSource = items;
-
+                await GetAllUsers();
             }
+        }
+
+        private async Task GetAllUsers()
+        {
+            TcpClient tcpClient = new TcpClient();
+            await tcpClient.ConnectAsync("127.0.0.1", 1024);
+            dll_tcp_chat.Serialize_data<dll_tcp_chat.User_dll> serialize = new dll_tcp_chat.Serialize_data<dll_tcp_chat.User_dll>();
+            dll_tcp_chat.Deserialize_data<dll_tcp_chat.User_dll> deserialize = new dll_tcp_chat.Deserialize_data<dll_tcp_chat.User_dll>();
+            NetworkStream stream = tcpClient.GetStream();
+            //запрос на регистрацию
+            var message = dll_tcp_chat.USED_CODES.RECEIVE_USERS;
+            var dateTimeBytes = Encoding.UTF8.GetBytes(message);
+            await stream.WriteAsync(dateTimeBytes, 0, dateTimeBytes.Length);
+
+            //ожидаем юзеров
+            try
+            {
+                int bytes;  // количество полученных байтов
+                byte[] byffer = new byte[1024];
+                byte[] all_butes = new byte[0];
+                do
+                {
+                    //получаем данные
+                    bytes = await stream.ReadAsync(byffer, 0, byffer.Length);//мало ли сколько их там
+                    // склеивем массивы байтов
+                    all_butes = all_butes.Concat(byffer).ToArray();                  
+                }
+                while (stream.DataAvailable); // пока данные есть в потоке 
+                //this.Dispatcher.Invoke(new Action(() => UserToText.Text = b.Length.ToString()));
+                //int responce = await stream.ReadAsync(byffer, 0, byffer.Length);
+
+                users = deserialize.GetListFromBytes(all_butes);
+                UsersList.ItemsSource = users;
+            }
+            catch
+            {
+                MessageBox.Show("Нет связи с сервером!");
+            }
+            tcpClient.Close();
         }
         private void RegistrButton_Click(object sender, RoutedEventArgs e)
         {
@@ -129,6 +171,7 @@ namespace Tcp_Chat_Client
                     RegistrationGrid.Visibility = Visibility.Hidden;
                     AuthorPanel.Visibility = Visibility.Hidden;
                     MainGrid.Visibility = Visibility.Visible;
+                    UserPanel.DataContext = user;
                     //авторизация уже сохраненных юзеров из файликов
                 }
             }

@@ -11,10 +11,11 @@ namespace Tcp_Server_Console.Handlers
 {
    public class ServerHandlers
     {
-      public async Task RegistrationUser(NetworkStream stream)
+       public  Mappers.Mapper mapper = new Mappers.Mapper();
+       public Mappers.Mapper_dll mapper_dll = new Mappers.Mapper_dll();
+        public async Task RegistrationUser(NetworkStream stream)//запрос на регистрацию
         {
-            Mappers.Mapper mapper = new Mappers.Mapper();
-            Mappers.Mapper_dll mapper_dll = new Mappers.Mapper_dll();
+           
             byte[] buffer = new byte[1024];
             int responce = await stream.ReadAsync(buffer, 0, buffer.Length);
             dll_tcp_chat.Deserialize_data<dll_tcp_chat.User_reg_dll> data = new dll_tcp_chat.Deserialize_data<dll_tcp_chat.User_reg_dll>();
@@ -41,6 +42,22 @@ namespace Tcp_Server_Console.Handlers
                 buffer = serialize.GetBytesFromObj(user_Reg);
                 await stream.WriteAsync(buffer, 0, buffer.Length);
             }
+        }
+        public async Task SendAllUsers(NetworkStream stream)//отправляем все контакты из базы
+        {
+            Db_servise.SQL_users users_db = new Db_servise.SQL_users();
+            List<User> users = users_db.GetAll().ToList();
+            //Console.WriteLine(users.Count);
+            List<dll_tcp_chat.User_dll> users_dll = new List<dll_tcp_chat.User_dll>();
+            foreach (var user in users) 
+            {
+                users_dll.Add(mapper_dll.MapUserToUserDll(user));
+            }
+            //Console.WriteLine($"dll+users {users_dll.Count}");
+            dll_tcp_chat.Serialize_data<dll_tcp_chat.User_dll> serialize = new dll_tcp_chat.Serialize_data<dll_tcp_chat.User_dll>();
+            byte[] buffer = serialize.GetBytesFromList(users_dll);
+           // Console.WriteLine(buffer.Length);
+            await stream.WriteAsync(buffer, 0, buffer.Length);
         }
     }
 }

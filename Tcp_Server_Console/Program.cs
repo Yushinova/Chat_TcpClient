@@ -60,7 +60,7 @@ namespace Tcp_Server_Console
 
                             break;
                         case dll_tcp_chat.USED_CODES.RECEIVE_USERS://получить все контакты
-
+                            await handlers.SendAllUsers(stream);
                             break;
                         case dll_tcp_chat.USED_CODES.RECEIVE_MESSAGES://получить сообщения
 

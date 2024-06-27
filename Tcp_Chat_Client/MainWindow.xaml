@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Grid x:Name="RegistrationGrid" Background="DarkGray">
+        <Grid x:Name="RegistrationGrid" Background="DarkGray" Visibility="Visible">
             <StackPanel Orientation="Vertical" Width="250" Height="250" Background="LightGray">
                 <Label Content="Введите адрес электронной почты" HorizontalAlignment="Center"
                        Margin="0,20,0,0"/>
@@ -44,16 +44,16 @@
                 <Label Grid.Column="0" Content="MyChat.Demo" FontSize="24" Margin="10,0,0,0"/>
                 <Menu Grid.Column="1" VerticalAlignment="Center">
                     <MenuItem Header="Действия" FontSize="18" Width="200">
-                        <MenuItem Header="Добавить контакт"/>
                         <MenuItem Header="Добавить группу"/>
+                        <MenuItem Header="Удалить группу"/>
                         <MenuItem Header="Выход" />
                     </MenuItem>
                 </Menu>
                 <Menu Grid.Column="2" VerticalAlignment="Center">
-                    <MenuItem Header="Настройки" FontSize="18" Width="150">
-                        <StackPanel Orientation="Vertical" Width="100" Height="50">
-                            <TextBlock x:Name="UserLoginText" Text="Login"/>
-                            <TextBlock x:Name="UserNameText" Text="Name"/>
+                    <MenuItem Header="Настройки" FontSize="14" Width="150">
+                        <StackPanel x:Name="UserPanel" Orientation="Vertical" Width="100" Height="50">
+                            <TextBlock x:Name="UserLoginText" Text="{Binding Path=Login}"/>
+                            <TextBlock x:Name="UserNameText" Text="{Binding Path=Name}"/>
                         </StackPanel>
                     </MenuItem>
                 </Menu>
@@ -69,7 +69,7 @@
                         <ListView x:Name="UsersList" Height="240">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock/>
+                                    <TextBlock Text="{Binding Path=Name}"/>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
@@ -98,7 +98,7 @@
                         <Button x:Name="AttachmentButton" Content="screpka" Margin="10,0,0,0"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <TextBox x:Name="MessageText" Width="490" Height="50" TextWrapping="Wrap"/>
+                        <TextBox x:Name="MessageText" Width="475" Height="50" TextWrapping="Wrap"/>
                         <Button x:Name="SendButton" Content="Send" Width="55"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
