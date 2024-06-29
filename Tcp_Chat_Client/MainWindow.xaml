@@ -66,7 +66,7 @@
                 <Border BorderBrush="Gray" BorderThickness="0.5">
                     <StackPanel x:Name="UsersPanel" Orientation="Vertical">
                         <Label Content="Мои контакты"/>
-                        <ListView x:Name="UsersList" Height="240">
+                        <ListView x:Name="UsersList" Height="240" SelectionChanged="SelectionChanged_Users">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Path=Name}"/>
@@ -76,8 +76,9 @@
                     </StackPanel>
                 </Border>
 
-                <StackPanel x:Name="MessagePanel" Grid.Column="1">
+                <StackPanel x:Name="MessagePanel" Grid.Column="1" Orientation="Vertical">
                     <Border BorderBrush="Black"/>
+                    
                 </StackPanel>
             </Grid>
             <Grid Grid.Row="2">
@@ -93,13 +94,14 @@
 
                 </StackPanel>
                 <StackPanel Grid.Column="1">
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel x:Name="AttachPanel" Orientation="Horizontal">
                         <Label Content="Прикрепить"/>
-                        <Button x:Name="AttachmentButton" Content="screpka" Margin="10,0,0,0"/>
+                        <Button x:Name="AttachmentButton" Content="screpka" Margin="10,0,0,0" Click="AttachmentButton_Click"/>
+                        <Label x:Name="AttachLabel" Content=""/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <TextBox x:Name="MessageText" Width="475" Height="50" TextWrapping="Wrap"/>
-                        <Button x:Name="SendButton" Content="Send" Width="55"/>
+                        <Button x:Name="SendButton" Content="Send" Width="55" Click="SendButton_Click"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <!--динамически приходит вложение-->

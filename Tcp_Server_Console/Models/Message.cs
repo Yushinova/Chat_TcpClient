@@ -13,6 +13,6 @@ namespace Tcp_Server_Console.Models
         public string Attachment_path { get; set; }
         public int Id_to_user { get; set; }
         public int Id_from_user { get; set; }
-        public DateTime Time_send { get; set; }
+        public string Time_send { get; set; }
     }
 }

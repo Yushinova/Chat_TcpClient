@@ -13,11 +13,11 @@ namespace dll_tcp_chat
 {
     public class USED_CODES
     {
-        public const string AUTHORIZATION_REQUEST = "A001";//запрос авторизации
-        public const string REGISTRATION_REQUEST = "R001";//запрос регистрации
-        public const string SEND_MESSAGE = "S002";//запрос отправки сообщения
-        public const string RECEIVE_MESSAGES = "R002";//запрос приема всех своих сообщений
-        public const string RECEIVE_USERS = "R003";
+        public const string AUTHORIZATION_REQUEST = "001";//запрос авторизации
+        public const string REGISTRATION_REQUEST = "002";//запрос регистрации
+        public const string SEND_MESSAGE = "003";//запрос отправки сообщения
+        public const string RECEIVE_MESSAGES = "004";//запрос приема всех своих сообщений
+        public const string RECEIVE_USERS = "005";
 
     }
     public class USED_ERRORS
@@ -86,16 +86,12 @@ namespace dll_tcp_chat
     {
         public string FileName { get; set; }
         public byte[] Body { get; set; }
-        public Attachment_dll(string path)//строка из сообщения путь
-        {
-            FileName = Path.GetFileName(path);
-            Body =  File.ReadAllBytes(path);
-        }
     }
 
     [Serializable]
     public class Message_dll
     {
+        public int Id { get; set; } = 0;
         public int Id_to { get; set; }
         public int Id_from { get; set; }
         public string Text { get; set; }
@@ -116,7 +112,7 @@ namespace dll_tcp_chat
     public class User_dll//для получения всех юзеров
     {
         public int Id_user { get; set; }
-        //public string Login { get; set; }//до собаки чтобы понятно было что за юзер
+        public string Login { get; set; }//до чтобы понятно было что за юзер
         public string Name { get; set; }
     }
 

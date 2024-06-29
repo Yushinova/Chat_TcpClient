@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -58,6 +59,33 @@ namespace Tcp_Server_Console.Handlers
             byte[] buffer = serialize.GetBytesFromList(users_dll);
            // Console.WriteLine(buffer.Length);
             await stream.WriteAsync(buffer, 0, buffer.Length);
+        }
+
+        public async Task SaveMessage(NetworkStream stream)//сохранение сообщения в базе
+        {
+            Db_servise.SQL_messages save_message = new Db_servise.SQL_messages();
+            dll_tcp_chat.Deserialize_data<dll_tcp_chat.Message_dll> deserialize = new dll_tcp_chat.Deserialize_data<dll_tcp_chat.Message_dll>();
+            Mappers.Mapper mapper = new Mappers.Mapper();
+            int bytes;  // количество полученных байтов
+            byte[] byffer = new byte[1024];
+            byte[] all_butes = new byte[0];
+            do
+            {
+                //получаем данные
+                bytes = await stream.ReadAsync(byffer, 0, byffer.Length);
+                //Console.WriteLine(bytes);
+                all_butes = all_butes.Concat(byffer).ToArray();
+            }
+            while (stream.DataAvailable); // пока данные есть в потоке 
+
+            dll_tcp_chat.Message_dll message = deserialize.GetObgFromBytes(all_butes);//десериализует
+
+            //Console.WriteLine($"{message.Id} {message.Time_send} {message.Text} {message.Id_from} {message.Id_to}");
+            save_message.InsertObj(mapper.MapMessageDlToMessage(message));//в базу вставляет
+            if (message.Attachment != null)
+            {
+                File.WriteAllBytes($"Folder\\{message.Attachment.FileName}", message.Attachment.Body);//в папку сохраняет
+            }
         }
     }
 }

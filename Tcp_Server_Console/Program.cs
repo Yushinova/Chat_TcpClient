@@ -44,7 +44,7 @@ namespace Tcp_Server_Console
                     
                     //получаем листы юзеров и сообщений
                     NetworkStream stream = client.GetStream();//обработка кодов запросов нужен трай кеч
-                    byte[] byffer = new byte[1024];
+                    byte[] byffer = new byte[3];//странно но нужно точно знать сколько байт в команде
                     int responce = await stream.ReadAsync(byffer, 0, byffer.Length);
                     var message = Encoding.UTF8.GetString(byffer, 0, responce);
                     Console.WriteLine(message);
@@ -57,7 +57,7 @@ namespace Tcp_Server_Console
                           
                             break;
                         case dll_tcp_chat.USED_CODES.SEND_MESSAGE://отправить сообщение
-
+                            await handlers.SaveMessage(stream);
                             break;
                         case dll_tcp_chat.USED_CODES.RECEIVE_USERS://получить все контакты
                             await handlers.SendAllUsers(stream);

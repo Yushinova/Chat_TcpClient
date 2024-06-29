@@ -10,7 +10,7 @@ namespace Tcp_Server_Console.Mappers
 {
     public class Mapper
     {
-        string FilePath = AppDomain.CurrentDomain.BaseDirectory.ToString() + "\\Folder\\";//путь к папке bin
+        string FilePath = AppDomain.CurrentDomain.BaseDirectory.ToString() + "Folder\\";//путь к папке bin
         public User MapUserRegDllToUser(dll_tcp_chat.User_reg_dll user_dll)
         {
             return new User()
@@ -23,19 +23,22 @@ namespace Tcp_Server_Console.Mappers
         }
         public Message MapMessageDlToMessage(dll_tcp_chat.Message_dll message_dll)
         {
-            //try
-            //{
-            //    File.WriteAllBytes(FilePath + message_dll.Attachment.FileName, message_dll.Attachment.Body);
-            //}
-            //catch (Exception ex) { }
-
+            string temp;
+            if(message_dll.Attachment!=null)
+            {
+                temp = FilePath + message_dll.Attachment.FileName;
+            }
+            else
+            {
+                temp = "";
+            }
             return new Message()
             {
-                Attachment_path = FilePath + message_dll.Attachment.FileName,//надо сохранять вложение и брать этот путь
+                Attachment_path = temp,//надо сохранять вложение и брать этот путь
                 Id_from_user = message_dll.Id_from,
                 Id_to_user = message_dll.Id_to,
                 Text = message_dll.Text,
-                Time_send = message_dll.Time_send
+                Time_send = message_dll.Time_send.ToString()
             };
         }
     }
@@ -47,7 +50,8 @@ namespace Tcp_Server_Console.Mappers
             return new dll_tcp_chat.User_dll()
             {
                 Id_user = user.Id_user,
-                Name = user.Name
+                Name = user.Name,
+                Login=user.Login
             };
         }
 
@@ -66,11 +70,17 @@ namespace Tcp_Server_Console.Mappers
         {
             return new dll_tcp_chat.Message_dll()
             {
-                Attachment = new dll_tcp_chat.Attachment_dll(message.Attachment_path),
+                Attachment = new dll_tcp_chat.Attachment_dll
+                {
+                    Body = File.ReadAllBytes(message.Attachment_path),
+                    FileName = Path.GetFileName(message.Attachment_path)
+                },
+
+                Id = message.Id_message,
                 Id_from = message.Id_from_user,
                 Id_to = message.Id_to_user,
                 Text = message.Text,
-                Time_send = message.Time_send
+                Time_send = DateTime.Parse(message.Time_send)
             };
         }
     }

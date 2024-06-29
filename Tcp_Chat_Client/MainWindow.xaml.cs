@@ -17,6 +17,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Net.WebRequestMethods;
 
 namespace Tcp_Chat_Client
 {
@@ -25,81 +27,26 @@ namespace Tcp_Chat_Client
     /// </summary>
     public partial class MainWindow : Window
     {
+        string path = Directory.GetCurrentDirectory();
         public TcpClient tcpClient;
         public dll_tcp_chat.User_reg_dll user = new dll_tcp_chat.User_reg_dll();
         public List<dll_tcp_chat.User_dll> users = new List<dll_tcp_chat.User_dll>();
+        public List<dll_tcp_chat.Message_dll> messages = new List<dll_tcp_chat.Message_dll>();
+       // public ObservableCollection<dll_tcp_chat.Message_dll> messages_wpf = new ObservableCollection<dll_tcp_chat.Message_dll>();
+        public WPF_servise.Servise servise = new WPF_servise.Servise();
+        public dll_tcp_chat.Attachment_dll attachment = new dll_tcp_chat.Attachment_dll();
        // public ObservableCollection<dll_tcp_chat.User_dll> users_dll = new ObservableCollection<dll_tcp_chat.User_dll>();
         public MainWindow()
         {
             InitializeComponent();
            
-            AuthorUser();
+            AuthorUser();//авторизация по уже сохраненным данным
             
         }
-        public async void RegistrUser()
+  
+        private void AuthorUser()
         {
-            try
-            {
-                TcpClient tcpClient = new TcpClient();
-                await tcpClient.ConnectAsync("127.0.0.1", 1024);
-                dll_tcp_chat.Serialize_data<dll_tcp_chat.User_reg_dll> serialize = new dll_tcp_chat.Serialize_data<dll_tcp_chat.User_reg_dll>();
-                dll_tcp_chat.Deserialize_data<dll_tcp_chat.User_reg_dll> deserialize = new dll_tcp_chat.Deserialize_data<dll_tcp_chat.User_reg_dll>();
-                NetworkStream stream = tcpClient.GetStream();
-                //запрос на регистрацию
-                var message = dll_tcp_chat.USED_CODES.REGISTRATION_REQUEST;
-                var dateTimeBytes = Encoding.UTF8.GetBytes(message);
-                await stream.WriteAsync(dateTimeBytes, 0, dateTimeBytes.Length);
-                //получаем юзера из формы регистрации
-                if (LoginText.Text != string.Empty && PasswordText.Text != string.Empty && NameText.Text != string.Empty)
-                {
-                    dll_tcp_chat.User_reg_dll user = new dll_tcp_chat.User_reg_dll()
-                    {
-                        Name = NameText.Text,
-                        Login = LoginText.Text,
-                        Password = PasswordText.Text
-                    };
-                    //передаем юзера серверу
-                    byte[] bytes = serialize.GetBytesFromObj(user);
-                    await stream.WriteAsync(bytes, 0, bytes.Length);
-                    //получаем ответ по регистрации
-                    byte[] byffer = new byte[1024];
-                    int responce = await stream.ReadAsync(byffer, 0, byffer.Length);
-                    string ansver = Encoding.UTF8.GetString(byffer, 0, byffer.Length);
-                    //получен ответ удачной регистрации
-                    if (ansver.Contains(dll_tcp_chat.USED_ERRORS.GOOD_CODE))
-                    {
-                        // LoginText.Text = Encoding.UTF8.GetString(byffer, 0, byffer.Length);
-                        //при удачной регистрации сервер присылает юзера уже из базы данных с ID
-                        responce = await stream.ReadAsync(byffer, 0, byffer.Length);
-                        user = deserialize.GetObgFromBytes(byffer);
-                        string fileName = $"{user.Login}.json";//пишем его в файл
-
-                        using (FileStream createStream = new FileStream(fileName, FileMode.OpenOrCreate))
-                        {
-                            JsonSerializer.Serialize<dll_tcp_chat.User_reg_dll>(createStream, user);
-                        }
-                        MessageBox.Show("Вы успешно зарегистрированы!");
-                        RegistrationGrid.Visibility = Visibility.Hidden;
-                        MainGrid.Visibility = Visibility.Visible;
-                        await GetAllUsers();
-                        tcpClient.Close();
-                    }
-                    else
-                    {
-                        MessageBox.Show("Логин занят!");
-                    }
-                }
-            }
-            catch
-            {
-                MessageBox.Show("Нет связи с сервером!");
-                tcpClient.Close();
-            }
-        }
-
-        private async void AuthorUser()
-        {
-            string path = Directory.GetCurrentDirectory();
+           
             string[] dirs = Directory.GetFiles(path, "*.json");
             List<string> items = new List<string>();
             foreach (var item in dirs)
@@ -110,72 +57,174 @@ namespace Tcp_Chat_Client
             {
                 AuthorPanel.Visibility = Visibility.Visible;
                 AuthorUsers.ItemsSource = items;
-                await GetAllUsers();
+               
             }
         }
-
-        private async Task GetAllUsers()
+        public StackPanel NewMessagePanel(dll_tcp_chat.Message_dll message, bool isNew)//если новое выделить цветом
         {
-            TcpClient tcpClient = new TcpClient();
-            await tcpClient.ConnectAsync("127.0.0.1", 1024);
-            dll_tcp_chat.Serialize_data<dll_tcp_chat.User_dll> serialize = new dll_tcp_chat.Serialize_data<dll_tcp_chat.User_dll>();
-            dll_tcp_chat.Deserialize_data<dll_tcp_chat.User_dll> deserialize = new dll_tcp_chat.Deserialize_data<dll_tcp_chat.User_dll>();
-            NetworkStream stream = tcpClient.GetStream();
-            //запрос на регистрацию
-            var message = dll_tcp_chat.USED_CODES.RECEIVE_USERS;
-            var dateTimeBytes = Encoding.UTF8.GetBytes(message);
-            await stream.WriteAsync(dateTimeBytes, 0, dateTimeBytes.Length);
-
-            //ожидаем юзеров
-            try
+            StackPanel panel = new StackPanel();
+            panel.Orientation = Orientation.Vertical;
+            TextBlock user_from_text = new TextBlock();
+            user_from_text.Text = $"[{users.First(u => u.Id_user == message.Id_from).Name} {message.Time_send.ToLongDateString()}]";
+            panel.Children.Add(user_from_text);
+            TextBlock message_text = new TextBlock();
+            message_text.Text = message.Text;
+            panel.Children.Add(message_text);
+            if (message.Attachment != null)
             {
-                int bytes;  // количество полученных байтов
-                byte[] byffer = new byte[1024];
-                byte[] all_butes = new byte[0];
-                do
+                StackPanel attach_panel = new StackPanel();
+                attach_panel.Orientation = Orientation.Horizontal;
+                TextBlock attach_text = new TextBlock();
+                attach_text.Text = System.IO.Path.GetExtension(message.Attachment.FileName);//расширение
+                attach_panel.Children.Add(attach_text);
+                Button button = new Button();
+                button.Content = "Add";
+                attach_panel.Children.Add(button);//подвесить обработчик и картинку
+                panel.Children.Add(attach_panel);
+            }
+            return panel;
+        }
+        private async void SetMessages()
+        {
+            List<dll_tcp_chat.Message_dll> message_from_DB = await servise.GetAllMessage();
+            string message_file_name = user.Login + "message.json";
+            if(messages.Count>0)
+            {
+                foreach (var item in message_from_DB)
                 {
-                    //получаем данные
-                    bytes = await stream.ReadAsync(byffer, 0, byffer.Length);//мало ли сколько их там
-                    // склеивем массивы байтов
-                    all_butes = all_butes.Concat(byffer).ToArray();                  
+                    if(!messages.Contains(item))
+                    {
+                        MessagePanel.Children.Add(NewMessagePanel(item, true));
+                    }
                 }
-                while (stream.DataAvailable); // пока данные есть в потоке 
-                //this.Dispatcher.Invoke(new Action(() => UserToText.Text = b.Length.ToString()));
-                //int responce = await stream.ReadAsync(byffer, 0, byffer.Length);
+            }
+            else
+            {
+                messages = message_from_DB;
+                using (FileStream createStream = new FileStream(message_file_name, FileMode.OpenOrCreate))
+                {
+                    JsonSerializer.Serialize<List<dll_tcp_chat.Message_dll>>(createStream,message_from_DB);
+                }
+                foreach (var item in message_from_DB)
+                {             
+                    MessagePanel.Children.Add(NewMessagePanel(item,true));
+                }
+            }
+            //надо проверить 
+        }
 
-                users = deserialize.GetListFromBytes(all_butes);
+        private async void RegistrButton_Click(object sender, RoutedEventArgs e)
+        {
+            user = await servise.RegistrUser(LoginText.Text, PasswordText.Text, NameText.Text);
+            users = await servise.GetAllUsers();
+            if(users!=null)
+            {
+                users.Remove(users.First(u => u.Login == user.Login));//убираем из контактов самого себя
                 UsersList.ItemsSource = users;
-            }
-            catch
+            }    
+           if(user!=null)
             {
-                MessageBox.Show("Нет связи с сервером!");
+                RegistrationGrid.Visibility = Visibility.Hidden;
+                MainGrid.Visibility = Visibility.Visible;
             }
-            tcpClient.Close();
-        }
-        private void RegistrButton_Click(object sender, RoutedEventArgs e)
-        {
-            RegistrUser();
         }
 
-        private void AuthorButton_Click(object sender, RoutedEventArgs e)
+        private async void AuthorButton_Click(object sender, RoutedEventArgs e)
         {
-            if(AuthorUsers.SelectedIndex!=-1)
+            string message_file_name = user.Login + "message.json";
+            if (AuthorUsers.SelectedIndex!=-1)
             {
-                if (File.Exists(AuthorUsers.SelectedItem.ToString()))
+                if (System.IO.File.Exists(AuthorUsers.SelectedItem.ToString()))
                 {
                     using (StreamReader r = new StreamReader(AuthorUsers.SelectedItem.ToString()))
                     {
                         string json = r.ReadToEnd();
                         user = JsonSerializer.Deserialize<dll_tcp_chat.User_reg_dll>(json);
                     }
-                    RegistrationGrid.Visibility = Visibility.Hidden;
-                    AuthorPanel.Visibility = Visibility.Hidden;
-                    MainGrid.Visibility = Visibility.Visible;
+                  
                     UserPanel.DataContext = user;
+                    users = await servise.GetAllUsers();
+                    if(users!=null && users.Count>0)
+                    {
+                        users.Remove(users.First(u => u.Login == user.Login));//убираем из контактов самого себя
+                        UsersList.ItemsSource = users;
+                        RegistrationGrid.Visibility = Visibility.Hidden;
+                        AuthorPanel.Visibility = Visibility.Hidden;
+                        MainGrid.Visibility = Visibility.Visible;
+                    }
+                    if (System.IO.File.Exists(message_file_name))//записанные сообщения юзера
+                    {
+                        using (StreamReader r = new StreamReader(message_file_name))
+                        {
+                            string json = r.ReadToEnd();
+                            messages = JsonSerializer.Deserialize<List<dll_tcp_chat.Message_dll>>(json);
+                            foreach (var item in messages)
+                            {
+                                MessagePanel.Children.Add(NewMessagePanel(item, false));
+                            }
+                        }
+                    }
                     //авторизация уже сохраненных юзеров из файликов
                 }
             }
            
+        }
+
+        private async void SendButton_Click(object sender, RoutedEventArgs e)
+        {
+            if(UserToText.Text!=string.Empty)
+            {
+                dll_tcp_chat.Message_dll message = new dll_tcp_chat.Message_dll();
+                message.Text = MessageText.Text;
+                message.Time_send = DateTime.Now.ToLocalTime();
+                message.Id_from = user.Id_user;
+                message.Id_to = (UsersList.SelectedItem as dll_tcp_chat.User_dll).Id_user;
+                if (attachment != null)
+                {
+                    message.Attachment = attachment;
+                }
+                try
+                {                 
+                    await servise.SendMessage(message);
+                    MessageBox.Show("Сообщение отправлено!");
+                    messages.Add(message);
+                }
+                catch
+                {
+                    MessageBox.Show("Ошибка сообщения!");
+                }
+            }
+            attachment = new dll_tcp_chat.Attachment_dll();
+            MessageText.Text = "";
+            AttachLabel.Content = "";
+        }
+
+        private void SelectionChanged_Users(object sender, SelectionChangedEventArgs e)
+        {
+            Dispatcher.Invoke(new Action(()=>UserToText.Text=(UsersList.SelectedItem as dll_tcp_chat.User_dll).Name));
+        }
+
+        private void AttachmentButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog();//диалоговое окно
+            dialog.Filter = "All Documents|*.*";
+
+            // Show open file dialog box
+            bool? result = dialog.ShowDialog();
+
+            // Process open file dialog box results
+            if (result == true)
+            {
+                // Open document
+                FileInfo f = new FileInfo(dialog.FileName);
+                string path = f.FullName;
+                attachment = new dll_tcp_chat.Attachment_dll()
+                { 
+                    Body = System.IO.File.ReadAllBytes(path),
+                    FileName = System.IO.Path.GetFileName(path)
+                } ;
+                Dispatcher.Invoke(new Action(() => AttachLabel.Content = System.IO.Path.GetFileName(path)));
+            }
         }
     }
 }
