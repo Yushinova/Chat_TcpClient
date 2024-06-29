@@ -22,7 +22,7 @@ namespace Tcp_Server_Console.Db_servise
 
         public void InsertObj(Message obj)//делаем запрос на вставку и передаем в сервис
         {
-            string sql = $"insert into Messages (Text,Attachment_path,Id_to_user,Id_from_user,Time_send) values ('{obj.Text}','{obj.Attachment_path}', {obj.Id_to_user}, {obj.Id_from_user}, '{obj.Time_send}')";
+            string sql = $"insert into Messages (Text,Attachment_path,Id_to_user,Id_from_user,Time_send) values (N'{obj.Text}',N'{obj.Attachment_path}', {obj.Id_to_user}, {obj.Id_from_user}, '{obj.Time_send}')";
             sql_messages.UpdateAndInsert(sql);
         }
     }

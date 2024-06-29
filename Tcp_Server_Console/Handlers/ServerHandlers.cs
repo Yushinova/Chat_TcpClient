@@ -82,7 +82,7 @@ namespace Tcp_Server_Console.Handlers
 
             //Console.WriteLine($"{message.Id} {message.Time_send} {message.Text} {message.Id_from} {message.Id_to}");
             save_message.InsertObj(mapper.MapMessageDlToMessage(message));//в базу вставляет
-            if (message.Attachment != null)
+            if (message.Attachment.FileName!=null)
             {
                 File.WriteAllBytes($"Folder\\{message.Attachment.FileName}", message.Attachment.Body);//в папку сохраняет
             }

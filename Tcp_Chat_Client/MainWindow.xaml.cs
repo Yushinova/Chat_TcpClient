@@ -188,6 +188,7 @@ namespace Tcp_Chat_Client
                     await servise.SendMessage(message);
                     MessageBox.Show("Сообщение отправлено!");
                     messages.Add(message);
+                    //MessagePanel.Children.Add(NewMessagePanel(message, false));
                 }
                 catch
                 {

@@ -22,7 +22,7 @@ namespace Tcp_Server_Console.Db_servise
 
         public void InsertObj(User obj)//делаем запрос на вставку и передаем в сервис
         {
-            string sql = $"insert into Users (Name,Login,Password,isActual) values ('{obj.Name}','{obj.Login}', '{obj.Password}', {obj.isActual})";
+            string sql = $"insert into Users (Name,Login,Password,isActual) values (N'{obj.Name}','{obj.Login}', '{obj.Password}', {obj.isActual})";
             sql_users.UpdateAndInsert(sql);
         }
     }
