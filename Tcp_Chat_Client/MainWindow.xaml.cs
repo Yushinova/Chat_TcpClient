@@ -101,15 +101,15 @@ namespace Tcp_Chat_Client
         private async void SetMessages()
         {
             List<dll_tcp_chat.Message_dll> message_from_DB = await servise.GetAllMessage(user.Id_user);
-            string message_file_name = "Messages\\"+user.Login+"message.json";
+            string message_file_name =path+"\\Messages\\"+user.Login+"message.json";
             if(messages.Count>0)
             {
-                foreach (var item in message_from_DB)
+                for (int i = 0; i < message_from_DB.Count; i++)
                 {
-                    if(!messages.Contains(item))
+                    if (!messages.Any(m => m.Id == message_from_DB[i].Id))
                     {
-                        messages.Add(item);
-                        Dispatcher.Invoke(new Action(() => MessagePanel.Items.Add(NewMessagePanel(item, users.First(u=>u.Id_user==item.Id_from).Name, true))));
+                        messages.Add(message_from_DB[i]);
+                        Dispatcher.Invoke(new Action(() => MessagePanel.Items.Add(NewMessagePanel(message_from_DB[i], users.First(u => u.Id_user == message_from_DB[i].Id_from).Name, true))));
                     }
                 }
             }
@@ -146,7 +146,8 @@ namespace Tcp_Chat_Client
 
         private async void AuthorButton_Click(object sender, RoutedEventArgs e)
         {
-            string message_file_name ="Messages\\"+user.Login+"message.json";
+            string message_file_name;
+           
             if (AuthorUsers.SelectedIndex!=-1)
             {
                 if (System.IO.File.Exists(AuthorUsers.SelectedItem.ToString()))
@@ -155,6 +156,7 @@ namespace Tcp_Chat_Client
                     {
                         string json = r.ReadToEnd();
                         user = JsonSerializer.Deserialize<dll_tcp_chat.User_reg_dll>(json);
+                        message_file_name = path + "\\Messages\\" + user.Login + "message.json";
                     }
                   
                     UserPanel.DataContext = user;
@@ -169,15 +171,17 @@ namespace Tcp_Chat_Client
                     }
                     if (System.IO.File.Exists(message_file_name))//записанные сообщения юзера
                     {
+                       //мы сюда попадаем
                         using (StreamReader r = new StreamReader(message_file_name))
                         {
                             string json = r.ReadToEnd();
                             messages = JsonSerializer.Deserialize<List<dll_tcp_chat.Message_dll>>(json);
                             foreach (var item in messages)
                             {
-                               // MessagePanel.Children.Add(NewMessagePanel(item, false));
+                                Dispatcher.Invoke(new Action(() => MessagePanel.Items.Add(NewMessagePanel(item, users.First(u => u.Id_user == item.Id_from).Name, false))));
                             }
                         }
+                        
                     }
                     //авторизация уже сохраненных юзеров из файликов
                 }
