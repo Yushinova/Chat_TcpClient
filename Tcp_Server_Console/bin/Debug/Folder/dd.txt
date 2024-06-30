@@ -1,5 +1,0 @@
-Count sentences: 225
-Count words: 1603
-Count symbols: 8629
-Count questions sentences: 10
-Count exclamations sentences: 7

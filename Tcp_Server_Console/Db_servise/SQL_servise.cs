@@ -31,8 +31,15 @@ namespace Tcp_Server_Console.Db_servise
             _db.Close();
             return values;
         }
-
-        public T GetById(string table_name, string column_name, int key)
+        public IEnumerable<T> GetAllById(string table_name, string column_name, int key)
+        {
+            _db.Open();
+            var sql = $"Select * from {table_name} where {column_name} = {key}";
+            IEnumerable<T> values = _db.Query<T>(sql);
+            _db.Close();
+            return values;
+        }
+        public T GetById(string table_name, string column_name, int key)//не нужно пока
         {
             _db.Open();
             var sql = $"Select * from {table_name} where {column_name} = {key}";

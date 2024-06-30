@@ -54,7 +54,7 @@ namespace Tcp_Server_Console
                          await handlers.RegistrationUser(stream);
                             break;
                         case dll_tcp_chat.USED_CODES.AUTHORIZATION_REQUEST://авторизация                          
-                          
+                          //думаю он не нужен
                             break;
                         case dll_tcp_chat.USED_CODES.SEND_MESSAGE://отправить сообщение
                             await handlers.SaveMessage(stream);
@@ -63,7 +63,7 @@ namespace Tcp_Server_Console
                             await handlers.SendAllUsers(stream);
                             break;
                         case dll_tcp_chat.USED_CODES.RECEIVE_MESSAGES://получить сообщения
-
+                           await handlers.SendAllMessage(stream);
                             break;
                         default:
                             Console.WriteLine("НЕИЗВЕСТНЫЙ ЗАПРОС!");

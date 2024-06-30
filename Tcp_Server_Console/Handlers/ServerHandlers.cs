@@ -79,13 +79,33 @@ namespace Tcp_Server_Console.Handlers
             while (stream.DataAvailable); // пока данные есть в потоке 
 
             dll_tcp_chat.Message_dll message = deserialize.GetObgFromBytes(all_butes);//десериализует
-
-            //Console.WriteLine($"{message.Id} {message.Time_send} {message.Text} {message.Id_from} {message.Id_to}");
+           // Console.WriteLine($"{message.Attachment}");
             save_message.InsertObj(mapper.MapMessageDlToMessage(message));//в базу вставляет
-            if (message.Attachment.FileName!=null)
+            if (message.Attachment!=null)
             {
                 File.WriteAllBytes($"Folder\\{message.Attachment.FileName}", message.Attachment.Body);//в папку сохраняет
             }
+        }
+        public async Task SendAllMessage(NetworkStream stream)
+        {
+            byte[] byffer = new byte[1024];
+            int responce = await stream.ReadAsync(byffer, 0, byffer.Length);
+            int Id = int.Parse(Encoding.UTF8.GetString(byffer, 0, responce));
+            Console.WriteLine($"Id user={Id}");
+            Db_servise.SQL_messages messages_db= new Db_servise.SQL_messages();
+            List<Message> messages = messages_db.GetAllById(Id).ToList();
+            Console.WriteLine($"Messages from db={messages.Count}");
+ 
+            List<dll_tcp_chat.Message_dll> messages_dll = new List<dll_tcp_chat.Message_dll>();
+            foreach (var message in messages)
+            {
+                messages_dll.Add(mapper_dll.MapMessageToMessageDll(message));
+            }
+            //Console.WriteLine($"dll+users {users_dll.Count}");
+            dll_tcp_chat.Serialize_data<dll_tcp_chat.Message_dll> serialize = new dll_tcp_chat.Serialize_data<dll_tcp_chat.Message_dll>();
+            byte[] buffer = serialize.GetBytesFromList(messages_dll);
+            Console.WriteLine(buffer.Length);
+            await stream.WriteAsync(buffer, 0, buffer.Length);
         }
     }
 }

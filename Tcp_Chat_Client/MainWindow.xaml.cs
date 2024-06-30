@@ -17,6 +17,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
+using Tcp_Chat_Client.WPF_servise;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Net.WebRequestMethods;
 
@@ -34,7 +36,7 @@ namespace Tcp_Chat_Client
         public List<dll_tcp_chat.Message_dll> messages = new List<dll_tcp_chat.Message_dll>();
        // public ObservableCollection<dll_tcp_chat.Message_dll> messages_wpf = new ObservableCollection<dll_tcp_chat.Message_dll>();
         public WPF_servise.Servise servise = new WPF_servise.Servise();
-        public dll_tcp_chat.Attachment_dll attachment = new dll_tcp_chat.Attachment_dll();
+        public dll_tcp_chat.Attachment_dll attachment;
        // public ObservableCollection<dll_tcp_chat.User_dll> users_dll = new ObservableCollection<dll_tcp_chat.User_dll>();
         public MainWindow()
         {
@@ -43,7 +45,11 @@ namespace Tcp_Chat_Client
             AuthorUser();//авторизация по уже сохраненным данным
             
         }
-  
+        private void dispatcherTimer_Tick(object sender, EventArgs e)
+        {
+            //Dispatcher.Invoke(new Action(() => UserToText.Text = DateTime.Now.ToString()));
+            SetMessages();
+        }
         private void AuthorUser()
         {
            
@@ -60,12 +66,17 @@ namespace Tcp_Chat_Client
                
             }
         }
-        public StackPanel NewMessagePanel(dll_tcp_chat.Message_dll message, bool isNew)//если новое выделить цветом
+        public Border NewMessagePanel(dll_tcp_chat.Message_dll message, string Name, bool isNew)//если новое выделить цветом
         {
+            Border border = new Border();
+            if(isNew) border.BorderBrush = Brushes.LightPink;
+            else border.BorderBrush = Brushes.AliceBlue;
+            border.BorderThickness = new Thickness(5, 5, 5, 5);
             StackPanel panel = new StackPanel();
+            panel.Width = 400;
             panel.Orientation = Orientation.Vertical;
             TextBlock user_from_text = new TextBlock();
-            user_from_text.Text = $"[{users.First(u => u.Id_user == message.Id_from).Name} {message.Time_send.ToLongDateString()}]";
+            user_from_text.Text = $"[{Name}] {message.Time_send.ToString()}";
             panel.Children.Add(user_from_text);
             TextBlock message_text = new TextBlock();
             message_text.Text = message.Text;
@@ -74,27 +85,31 @@ namespace Tcp_Chat_Client
             {
                 StackPanel attach_panel = new StackPanel();
                 attach_panel.Orientation = Orientation.Horizontal;
+                attach_panel.HorizontalAlignment = HorizontalAlignment.Right;
+                attach_panel.Margin = new Thickness(0, 0, 10, 0);
                 TextBlock attach_text = new TextBlock();
                 attach_text.Text = System.IO.Path.GetExtension(message.Attachment.FileName);//расширение
                 attach_panel.Children.Add(attach_text);
                 Button button = new Button();
-                button.Content = "Add";
+                button.Content = "Скачать файл";
                 attach_panel.Children.Add(button);//подвесить обработчик и картинку
                 panel.Children.Add(attach_panel);
             }
-            return panel;
+            border.Child = panel;
+            return border;
         }
         private async void SetMessages()
         {
-            List<dll_tcp_chat.Message_dll> message_from_DB = await servise.GetAllMessage();
-            string message_file_name = user.Login + "message.json";
+            List<dll_tcp_chat.Message_dll> message_from_DB = await servise.GetAllMessage(user.Id_user);
+            string message_file_name = "Messages\\"+user.Login+"message.json";
             if(messages.Count>0)
             {
                 foreach (var item in message_from_DB)
                 {
                     if(!messages.Contains(item))
                     {
-                        MessagePanel.Children.Add(NewMessagePanel(item, true));
+                        messages.Add(item);
+                        Dispatcher.Invoke(new Action(() => MessagePanel.Items.Add(NewMessagePanel(item, users.First(u=>u.Id_user==item.Id_from).Name, true))));
                     }
                 }
             }
@@ -106,8 +121,8 @@ namespace Tcp_Chat_Client
                     JsonSerializer.Serialize<List<dll_tcp_chat.Message_dll>>(createStream,message_from_DB);
                 }
                 foreach (var item in message_from_DB)
-                {             
-                    MessagePanel.Children.Add(NewMessagePanel(item,true));
+                {
+                    Dispatcher.Invoke(new Action(() => MessagePanel.Items.Add(NewMessagePanel(item, users.First(u => u.Id_user == item.Id_from).Name, true))));
                 }
             }
             //надо проверить 
@@ -131,7 +146,7 @@ namespace Tcp_Chat_Client
 
         private async void AuthorButton_Click(object sender, RoutedEventArgs e)
         {
-            string message_file_name = user.Login + "message.json";
+            string message_file_name ="Messages\\"+user.Login+"message.json";
             if (AuthorUsers.SelectedIndex!=-1)
             {
                 if (System.IO.File.Exists(AuthorUsers.SelectedItem.ToString()))
@@ -160,14 +175,21 @@ namespace Tcp_Chat_Client
                             messages = JsonSerializer.Deserialize<List<dll_tcp_chat.Message_dll>>(json);
                             foreach (var item in messages)
                             {
-                                MessagePanel.Children.Add(NewMessagePanel(item, false));
+                               // MessagePanel.Children.Add(NewMessagePanel(item, false));
                             }
                         }
                     }
                     //авторизация уже сохраненных юзеров из файликов
                 }
             }
-           
+           await Task.Factory.StartNew(() =>
+            {
+                System.Timers.Timer t = new System.Timers.Timer();
+                t.Interval = 5000;
+                t.Elapsed += dispatcherTimer_Tick;
+               // Dispatcher.Invoke(new Action(() => UserToText.Text = messages.Count.ToString()));
+                t.Start();
+            });
         }
 
         private async void SendButton_Click(object sender, RoutedEventArgs e)
@@ -179,16 +201,22 @@ namespace Tcp_Chat_Client
                 message.Time_send = DateTime.Now.ToLocalTime();
                 message.Id_from = user.Id_user;
                 message.Id_to = (UsersList.SelectedItem as dll_tcp_chat.User_dll).Id_user;
-                if (attachment != null)
+                if (attachment!=null)
                 {
                     message.Attachment = attachment;
+                }
+                else
+                {
+                    message.Attachment = null;
                 }
                 try
                 {                 
                     await servise.SendMessage(message);
                     MessageBox.Show("Сообщение отправлено!");
                     messages.Add(message);
-                    //MessagePanel.Children.Add(NewMessagePanel(message, false));
+                    //StackPanel panel = new StackPanel();
+                    //panel = NewMessagePanel(message, user.Name, false);
+                    MessagePanel.Items.Add(NewMessagePanel(message, user.Name, false));
                 }
                 catch
                 {

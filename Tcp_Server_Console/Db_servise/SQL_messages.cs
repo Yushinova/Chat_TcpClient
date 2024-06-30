@@ -14,7 +14,10 @@ namespace Tcp_Server_Console.Db_servise
         {
             return sql_messages.GetValues("Messages");
         }
-
+        public IEnumerable<Message> GetAllById(int id)
+        {
+            return sql_messages.GetAllById("Messages", "Id_to_user", id);
+        }
         public Message GetByID(int id)
         {
             return sql_messages.GetById("Messages", "Id_to_user", id);

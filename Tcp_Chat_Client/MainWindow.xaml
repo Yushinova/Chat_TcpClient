@@ -75,11 +75,11 @@
                         </ListView>
                     </StackPanel>
                 </Border>
-
-                <StackPanel x:Name="MessagePanel" Grid.Column="1" Orientation="Vertical">
-                    <Border BorderBrush="Black"/>
-                    
-                </StackPanel>
+                
+                    <ListView x:Name="MessagePanel" Grid.Column="1">
+                        <Border BorderBrush="Black"/>
+                    </ListView>
+              
             </Grid>
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>

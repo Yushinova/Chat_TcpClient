@@ -111,7 +111,7 @@ namespace Tcp_Chat_Client.WPF_servise
             }
         }
 
-        public async Task<List<dll_tcp_chat.Message_dll>> GetAllMessage()//получение всех сообщений
+        public async Task<List<dll_tcp_chat.Message_dll>> GetAllMessage(int Id)//получение всех сообщений
         {
             try
             {
@@ -123,9 +123,10 @@ namespace Tcp_Chat_Client.WPF_servise
                 var message = dll_tcp_chat.USED_CODES.RECEIVE_MESSAGES;
                 var date = Encoding.UTF8.GetBytes(message);
                 await stream.WriteAsync(date, 0, date.Length);
-
+                //отправить ID user
+                date = Encoding.UTF8.GetBytes(Id.ToString());
+                await stream.WriteAsync(date, 0, date.Length);
                 //ожидаем messages
-
                 int bytes;  // количество полученных байтов
                 byte[] byffer = new byte[1024];
                 byte[] all_butes = new byte[0];

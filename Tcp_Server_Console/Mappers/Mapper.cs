@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using Tcp_Server_Console.Models;
@@ -68,14 +69,22 @@ namespace Tcp_Server_Console.Mappers
 
         public dll_tcp_chat.Message_dll MapMessageToMessageDll(Message message)
         {
-            return new dll_tcp_chat.Message_dll()
+            dll_tcp_chat.Attachment_dll attachment_;
+            if (!string.IsNullOrEmpty(message.Attachment_path))
             {
-                Attachment = new dll_tcp_chat.Attachment_dll
+               attachment_ = new dll_tcp_chat.Attachment_dll()
                 {
                     Body = File.ReadAllBytes(message.Attachment_path),
                     FileName = Path.GetFileName(message.Attachment_path)
-                },
-
+                };
+            }
+            else
+            {
+                attachment_ = null;
+            }
+            return new dll_tcp_chat.Message_dll()
+            {              
+                Attachment = attachment_,
                 Id = message.Id_message,
                 Id_from = message.Id_from_user,
                 Id_to = message.Id_to_user,
