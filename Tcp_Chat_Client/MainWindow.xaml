@@ -9,9 +9,9 @@
     <Grid>
         <Grid x:Name="RegistrationGrid" Background="DarkGray" Visibility="Visible">
             <StackPanel Orientation="Vertical" Width="250" Height="250" Background="LightGray">
-                <Label Content="Введите адрес электронной почты" HorizontalAlignment="Center"
+                <Label Content="Введите логин" HorizontalAlignment="Center"
                        Margin="0,20,0,0"/>
-                <TextBox x:Name="LoginText" Text="yourmail@mail.ru" Width="200"/>
+                <TextBox x:Name="LoginText" Text="yourmail" Width="200"/>
                 <Label Content="Введите пароль" HorizontalAlignment="Center" Margin="0,10,0,0"/>
                 <TextBox x:Name="PasswordText" Text="password" Width="200"/>
                 <Label Content="Введите имя" HorizontalAlignment="Center" Margin="0,10,0,0"/>
@@ -66,7 +66,7 @@
                 <Border BorderBrush="Gray" BorderThickness="0.5">
                     <StackPanel x:Name="UsersPanel" Orientation="Vertical">
                         <Label Content="Мои контакты"/>
-                        <ListView x:Name="UsersList" Height="240" SelectionChanged="SelectionChanged_Users">
+                        <ListView x:Name="UsersList" Height="240" SelectionChanged="SelectionUser">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Path=Name}"/>
@@ -75,11 +75,9 @@
                         </ListView>
                     </StackPanel>
                 </Border>
-                
-                    <ListView x:Name="MessagePanel" Grid.Column="1">
-                        <Border BorderBrush="Black"/>
-                    </ListView>
-              
+
+                <ListView x:Name="MessagePanel" Grid.Column="1">
+                </ListView>
             </Grid>
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>

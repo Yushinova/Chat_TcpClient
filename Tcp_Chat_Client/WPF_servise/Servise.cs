@@ -150,18 +150,25 @@ namespace Tcp_Chat_Client.WPF_servise
         }
         public async Task SendMessage(dll_tcp_chat.Message_dll message)//отправка сообщения
         {
-            TcpClient tcpClient = new TcpClient();
-            await tcpClient.ConnectAsync("127.0.0.1", 1024);
-            dll_tcp_chat.Serialize_data<dll_tcp_chat.Message_dll> serialize = new dll_tcp_chat.Serialize_data<dll_tcp_chat.Message_dll>();
-            NetworkStream stream = tcpClient.GetStream();
-            //запрос на регистрацию
-            string message_code = dll_tcp_chat.USED_CODES.SEND_MESSAGE;
-            byte[] date = Encoding.UTF8.GetBytes(message_code);
-            await stream.WriteAsync(date, 0, date.Length);
+            try
+            {
+                TcpClient tcpClient = new TcpClient();
+                await tcpClient.ConnectAsync("127.0.0.1", 1024);
+                dll_tcp_chat.Serialize_data<dll_tcp_chat.Message_dll> serialize = new dll_tcp_chat.Serialize_data<dll_tcp_chat.Message_dll>();
+                NetworkStream stream = tcpClient.GetStream();
+                //запрос на регистрацию
+                string message_code = dll_tcp_chat.USED_CODES.SEND_MESSAGE;
+                byte[] date = Encoding.UTF8.GetBytes(message_code);
+                await stream.WriteAsync(date, 0, date.Length);
 
-            byte[] bytes = serialize.GetBytesFromObj(message);
-            await stream.WriteAsync(bytes,0,bytes.Length);
-            tcpClient.Close();
+                byte[] bytes = serialize.GetBytesFromObj(message);
+                await stream.WriteAsync(bytes, 0, bytes.Length);
+                tcpClient.Close();
+            }
+           catch
+            {
+                MessageBox.Show("Нет связи с сервером!");
+            }
         }
     }
 }
