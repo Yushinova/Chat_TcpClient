@@ -108,9 +108,9 @@
     <Content Include="Db_servise\Config_str.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="TcpChat.mdf">
+    <Compile Include="TcpChat.mdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </Compile>
     <Content Include="TcpChat_log.ldf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <DependentUpon>TcpChat.mdf</DependentUpon>
