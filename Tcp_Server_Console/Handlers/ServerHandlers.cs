@@ -67,13 +67,13 @@ namespace Tcp_Server_Console.Handlers
             dll_tcp_chat.Deserialize_data<dll_tcp_chat.Message_dll> deserialize = new dll_tcp_chat.Deserialize_data<dll_tcp_chat.Message_dll>();
             Mappers.Mapper mapper = new Mappers.Mapper();
             int bytes;  // количество полученных байтов
-            byte[] byffer = new byte[1024];
+            byte[] byffer = new byte[10000];
             byte[] all_butes = new byte[0];
             do
             {
                 //получаем данные
                 bytes = await stream.ReadAsync(byffer, 0, byffer.Length);
-                //Console.WriteLine(bytes);
+                Console.WriteLine(bytes);
                 all_butes = all_butes.Concat(byffer).ToArray();
             }
             while (stream.DataAvailable); // пока данные есть в потоке 

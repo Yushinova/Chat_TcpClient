@@ -123,16 +123,20 @@ namespace Tcp_Chat_Client
             }
             else
             {
-                messages = message_from_DB;
-                using (FileStream createStream = new FileStream(message_file_name, FileMode.OpenOrCreate))
+                if(message_from_DB!=null)
                 {
-                    byte[] jsonUtf8Bytes = serialize.GetBytesFromList(messages);
-                    await JsonSerializer.SerializeAsync<byte[]>(createStream, jsonUtf8Bytes);//записываем в файл байты
+                    messages = message_from_DB;
+                    using (FileStream createStream = new FileStream(message_file_name, FileMode.OpenOrCreate))
+                    {
+                        byte[] jsonUtf8Bytes = serialize.GetBytesFromList(messages);
+                        await JsonSerializer.SerializeAsync<byte[]>(createStream, jsonUtf8Bytes);//записываем в файл байты
+                    }
+                    foreach (var item in message_from_DB)
+                    {
+                        Dispatcher.Invoke(new Action(() => MessagePanel.Items.Add(NewMessagePanel(item, users.First(u => u.Id_user == item.Id_from).Name, true))));
+                    }
                 }
-                foreach (var item in message_from_DB)
-                {
-                    Dispatcher.Invoke(new Action(() => MessagePanel.Items.Add(NewMessagePanel(item, users.First(u => u.Id_user == item.Id_from).Name, true))));
-                }
+               
             }
             
         }

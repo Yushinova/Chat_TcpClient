@@ -128,7 +128,7 @@ namespace Tcp_Chat_Client.WPF_servise
                 await stream.WriteAsync(date, 0, date.Length);
                 //ожидаем messages
                 int bytes;  // количество полученных байтов
-                byte[] byffer = new byte[1024];
+                byte[] byffer = new byte[100000];//для отправки больших файлов нужен большой буфер
                 byte[] all_butes = new byte[0];
                 do
                 {

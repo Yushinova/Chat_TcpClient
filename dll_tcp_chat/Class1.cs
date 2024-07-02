@@ -60,7 +60,7 @@ namespace dll_tcp_chat
         BinaryFormatter formatter = new BinaryFormatter();
         public byte[] GetBytesFromList(List<T> list)
         {
-            using (MemoryStream stream = new MemoryStream())//переводим все рецепты в байты
+            using (MemoryStream stream = new MemoryStream())//переводим лист чего угодно в байты
             {
                 formatter = new BinaryFormatter();
                 formatter.Serialize(stream, list);
@@ -71,7 +71,7 @@ namespace dll_tcp_chat
         }
         public byte[] GetBytesFromObj(T obj)
         {
-            using (MemoryStream stream = new MemoryStream())//переводим все рецепты в байты
+            using (MemoryStream stream = new MemoryStream())//переводим объект в байты
             {
                 formatter = new BinaryFormatter();
                 formatter.Serialize(stream, obj);
