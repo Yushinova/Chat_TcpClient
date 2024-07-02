@@ -105,7 +105,7 @@ namespace Tcp_Chat_Client
         private async void SetMessages()//проверка и установка новых сообщений
         {
             List<dll_tcp_chat.Message_dll> message_from_DB = await servise.GetAllMessage(user.Id_user);
-            if (messages.Count > 0)
+            if (messages.Count > 0 && message_from_DB!=null)
             {
                 for (int i = 0; i < message_from_DB.Count; i++)
                 {
@@ -134,7 +134,7 @@ namespace Tcp_Chat_Client
                     Dispatcher.Invoke(new Action(() => MessagePanel.Items.Add(NewMessagePanel(item, users.First(u => u.Id_user == item.Id_from).Name, true))));
                 }
             }
-
+            
         }
         private void DownloadFile_Click(object sender, RoutedEventArgs e)//скачать файл вложения сообщения
         {
@@ -152,18 +152,27 @@ namespace Tcp_Chat_Client
         private async void RegistrButton_Click(object sender, RoutedEventArgs e)
         {
             user = await servise.RegistrUser(LoginText.Text, PasswordText.Text, NameText.Text);
+            if (user != null)
+            {
+                message_file_name = path + "\\Messages\\" + user.Login + "message.json";
+                UserPanel.DataContext = user;
+                this.Title = user.Login;
+                RegistrationGrid.Visibility = Visibility.Hidden;
+                MainGrid.Visibility = Visibility.Visible;
+            }
             users = await servise.GetAllUsers();
             if (users != null)
             {
                 users.Remove(users.First(u => u.Login == user.Login));//убираем из контактов самого себя
                 UsersList.ItemsSource = users;
-                message_file_name = path + "\\Messages\\" + user.Login + "message.json";
             }
-            if (user != null)
+            await Task.Factory.StartNew(() =>//запуск проверки сообщений
             {
-                RegistrationGrid.Visibility = Visibility.Hidden;
-                MainGrid.Visibility = Visibility.Visible;
-            }
+                System.Timers.Timer t = new System.Timers.Timer();
+                t.Interval = 5000;
+                t.Elapsed += dispatcherTimer_Tick;
+                t.Start();
+            });
         }
 
         private async void AuthorButton_Click(object sender, RoutedEventArgs e)
@@ -179,16 +188,10 @@ namespace Tcp_Chat_Client
                         message_file_name = path + "\\Messages\\" + user.Login + "message.json";
                     }
                     UserPanel.DataContext = user;
+                    this.Title = user.Login;
                     users = await servise.GetAllUsers();
                     if (users != null && users.Count > 0)
                     {
-                        await Task.Factory.StartNew(() =>//запуск проверки сообщений
-                        {
-                            System.Timers.Timer t = new System.Timers.Timer();
-                            t.Interval = 5000;
-                            t.Elapsed += dispatcherTimer_Tick;
-                            t.Start();
-                        });
                         users.Remove(users.First(u => u.Login == user.Login));//убираем из контактов самого себя
                         UsersList.ItemsSource = users;
                         RegistrationGrid.Visibility = Visibility.Hidden;
@@ -206,20 +209,27 @@ namespace Tcp_Chat_Client
                             messages = deserialize.GetListFromBytes(bytes);
                             foreach (var item in messages)
                             {
-                                if(item.Id_from==user.Id_user)
+                                if (item.Id_from == user.Id_user)
                                 {
                                     Dispatcher.Invoke(new Action(() => MessagePanel.Items.Add(NewMessagePanel(item, user.Name, false))));
                                 }
                                 else
                                 {
                                     Dispatcher.Invoke(new Action(() => MessagePanel.Items.Add(NewMessagePanel(item, users.First(u => u.Id_user == item.Id_from).Name, false))));
-                                }                              
+                                }
                             }
                         }
                     }
                 }
+                await Task.Factory.StartNew(() =>//запуск проверки сообщений
+                {
+                    System.Timers.Timer t = new System.Timers.Timer();
+                    t.Interval = 10000;
+                    t.Elapsed += dispatcherTimer_Tick;
+                    t.Start();
+                });
             }
-           
+
         }
 
         private async void SendButton_Click(object sender, RoutedEventArgs e)//отправка сообщения
@@ -281,14 +291,14 @@ namespace Tcp_Chat_Client
             }
         }
 
-        private void MouseDown_Messages(object sender, MouseButtonEventArgs e)
+        private void MouseDown_Messages(object sender, MouseButtonEventArgs e)//меням по клику мыши новое сообщение на прочитанное
         {
             Dispatcher.Invoke(new Action(() => (sender as Border).BorderBrush = Brushes.AliceBlue));
         }
 
-        private void SelectionUser(object sender, SelectionChangedEventArgs e)
+        private void SelectionUser(object sender, SelectionChangedEventArgs e)//установка "от кого" из списка юзеров
         {
-            Dispatcher.Invoke(new Action(() => UserToText.Text = (UsersList.SelectedItem as dll_tcp_chat.User_dll).Name));
+            UserToText.Text = (UsersList.SelectedItem as dll_tcp_chat.User_dll).Name;
         }
     }
 }

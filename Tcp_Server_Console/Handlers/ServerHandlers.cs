@@ -21,7 +21,7 @@ namespace Tcp_Server_Console.Handlers
             int responce = await stream.ReadAsync(buffer, 0, buffer.Length);
             dll_tcp_chat.Deserialize_data<dll_tcp_chat.User_reg_dll> data = new dll_tcp_chat.Deserialize_data<dll_tcp_chat.User_reg_dll>();
             dll_tcp_chat.User_reg_dll user_Reg = data.GetObgFromBytes(buffer);
-            Console.WriteLine(user_Reg.Login);
+           // Console.WriteLine(user_Reg.Login);
             //запрос юзеров из базы данных
             Db_servise.SQL_users users_db = new Db_servise.SQL_users();
             List<User> users = users_db.GetAll().ToList();
@@ -91,10 +91,10 @@ namespace Tcp_Server_Console.Handlers
             byte[] byffer = new byte[1024];
             int responce = await stream.ReadAsync(byffer, 0, byffer.Length);
             int Id = int.Parse(Encoding.UTF8.GetString(byffer, 0, responce));
-            Console.WriteLine($"Id user={Id}");
+            //Console.WriteLine($"Id user={Id}");
             Db_servise.SQL_messages messages_db= new Db_servise.SQL_messages();
             List<Message> messages = messages_db.GetAllById(Id).ToList();
-            Console.WriteLine($"Messages from db={messages.Count}");
+           // Console.WriteLine($"Messages from db={messages.Count}");
  
             List<dll_tcp_chat.Message_dll> messages_dll = new List<dll_tcp_chat.Message_dll>();
             foreach (var message in messages)
@@ -104,7 +104,7 @@ namespace Tcp_Server_Console.Handlers
             //Console.WriteLine($"dll+users {users_dll.Count}");
             dll_tcp_chat.Serialize_data<dll_tcp_chat.Message_dll> serialize = new dll_tcp_chat.Serialize_data<dll_tcp_chat.Message_dll>();
             byte[] buffer = serialize.GetBytesFromList(messages_dll);
-            Console.WriteLine(buffer.Length);
+           // Console.WriteLine(buffer.Length);
             await stream.WriteAsync(buffer, 0, buffer.Length);
         }
     }

@@ -69,7 +69,7 @@ namespace Tcp_Chat_Client.WPF_servise
             }
             catch
             {
-                MessageBox.Show("Нет связи с сервером!");
+               // MessageBox.Show("Нет связи с сервером!");
                 return null;
             }
         }
@@ -106,7 +106,7 @@ namespace Tcp_Chat_Client.WPF_servise
             }
             catch
             {
-                MessageBox.Show("Нет связи с сервером!");
+               // MessageBox.Show("Нет связи с сервером!");
                 return null;
             }
         }
@@ -144,7 +144,7 @@ namespace Tcp_Chat_Client.WPF_servise
             }
             catch
             {
-                MessageBox.Show("Нет связи с сервером!");
+                //MessageBox.Show("Нет связи с сервером!");
                 return null;
             }
         }
@@ -167,7 +167,7 @@ namespace Tcp_Chat_Client.WPF_servise
             }
            catch
             {
-                MessageBox.Show("Нет связи с сервером!");
+               // MessageBox.Show("Нет связи с сервером!");
             }
         }
     }
