@@ -73,7 +73,7 @@ namespace Tcp_Server_Console.Handlers
             {
                 //получаем данные
                 bytes = await stream.ReadAsync(byffer, 0, byffer.Length);
-                Console.WriteLine(bytes);
+                //Console.WriteLine(bytes);
                 all_butes = all_butes.Concat(byffer).ToArray();
             }
             while (stream.DataAvailable); // пока данные есть в потоке 
