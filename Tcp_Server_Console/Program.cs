@@ -34,6 +34,7 @@ namespace Tcp_Server_Console
             {
                 tcpListener.Stop();
             }
+
             async Task ReceiveSend()
             {
                 while (true)
@@ -44,7 +45,7 @@ namespace Tcp_Server_Console
                     
                     //получаем листы юзеров и сообщений
                     NetworkStream stream = client.GetStream();//обработка кодов запросов нужен трай кеч
-                    byte[] byffer = new byte[3];//странно но нужно точно знать сколько байт в команде
+                    byte[] byffer = new byte[3];//нужно точно знать сколько байт в команде
                     int responce = await stream.ReadAsync(byffer, 0, byffer.Length);
                     var message = Encoding.UTF8.GetString(byffer, 0, responce);
                     Console.WriteLine(message);
@@ -54,7 +55,7 @@ namespace Tcp_Server_Console
                          await handlers.RegistrationUser(stream);
                             break;
                         case dll_tcp_chat.USED_CODES.AUTHORIZATION_REQUEST://авторизация                          
-                          //думаю он не нужен
+                         //TODO
                             break;
                         case dll_tcp_chat.USED_CODES.SEND_MESSAGE://отправить сообщение
                             await handlers.SaveMessage(stream);

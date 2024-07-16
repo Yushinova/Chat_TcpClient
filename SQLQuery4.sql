@@ -1,2 +1,0 @@
-﻿ALTER TABLE Users
-ALTER COLUMN Name VARCHAR(50) COLLATE Cyrillic_General_CI_AS
